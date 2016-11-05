@@ -6,6 +6,7 @@ import cn.nukkit.block.Block;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.event.EventHandler;
+import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.block.BlockBreakEvent;
 import cn.nukkit.event.block.BlockPlaceEvent;
 import cn.nukkit.item.Item;
@@ -26,15 +27,19 @@ public class EventListener extends BaseListener<Main> {
 		return false;
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBreak(BlockBreakEvent event) {
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
 		if (block.getLevel().getBlock(new Vector3(block.x, block.y - 1, block.z)).getId() != Block.SPONGE) {
 			return;
 		}
+		if (MineManager.getInstance().isDirectOre()) {
+			player.getInventory().addItem(MineManager.getInstance().getMineralByOre(block.getId()));
+		} else {
+			player.getInventory().addItem(event.getDrops());
+		}
 		event.setDrops(new Item[0]);
-		player.getInventory().addItem(MineManager.getMineralByOre(block.getId()));
 		Server.getInstance().getScheduler().scheduleDelayedTask(new BlockPlaceTask(plugin, block), 5);
 	}
 	
@@ -44,6 +49,6 @@ public class EventListener extends BaseListener<Main> {
 		if (block.getId() != Block.SPONGE) {
 			return;
 		}
-		MineManager.placeMine(new Position(block.x, block.y + 1, block.z, block.level));
+		MineManager.getInstance().placeMine(new Position(block.x, block.y + 1, block.z, block.level));
 	}
 }

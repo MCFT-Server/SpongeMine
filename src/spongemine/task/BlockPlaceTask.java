@@ -16,7 +16,7 @@ public class BlockPlaceTask extends PluginTask<Main> {
 
 	@Override
 	public void onRun(int currentTick) {
-		MineManager.placeMine(pos);
+		MineManager.getInstance().placeMine(pos);
 	}
 
 }

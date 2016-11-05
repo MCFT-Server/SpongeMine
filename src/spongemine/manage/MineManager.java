@@ -1,42 +1,57 @@
 package spongemine.manage;
 
 import java.util.Calendar;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import cn.nukkit.block.Block;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
+import cn.nukkit.utils.Config;
+import spongemine.Main;
+import spongemine.database.DataBase;
 
 public class MineManager {
-	public static void placeMine(Position pos) {
-		pos.getLevel().setBlock(pos, getRandomBlock());
-	}
+	private Main plugin;
+	private static MineManager instance;
 	
-	private static Block getRandomBlock() {
-		Random rand = new Random(Calendar.getInstance().getTimeInMillis());
-		int randnum = rand.nextInt(100);
-		if (randnum < 50) {
-			return Block.get(Block.STONE);
-		} else if (randnum < 68) {
-			return Block.get(Block.COAL_ORE);
-		} else if (randnum < 78) {
-			return Block.get(Block.IRON_ORE);
-		} else if (randnum < 86) {
-			return Block.get(Block.GOLD_ORE);
-		} else if (randnum < 92) {
-			return Block.get(Block.LAPIS_ORE);
-		} else if (randnum < 97) {
-			return Block.get(Block.REDSTONE_ORE);
-		} else if (randnum < 99) {
-			return Block.get(Block.DIAMOND_ORE);
-		} else if (randnum < 100) {
-			return Block.get(Block.EMERALD_ORE);
-		} else {
-			return Block.get(Block.STONE);
+	public MineManager(Main plugin) {
+		this.plugin = plugin;
+		
+		if (instance == null) {
+			instance = this;
 		}
 	}
 	
-	public static Item getMineralByOre(int itemid) {
+	public static MineManager getInstance() {
+		return instance;
+	}
+	
+	public void placeMine(Position pos) {
+		pos.getLevel().setBlock(pos, getRandomBlock());
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Block getRandomBlock() {
+		Random rand = new Random(Calendar.getInstance().getTimeInMillis());
+		double randsum = 0;
+		Map<Integer, Number> map = (Map<Integer, Number>) getConfig().get("ore-list");
+		for (Number probability : map.values()) {
+			randsum += probability.doubleValue();
+		}
+		int randnum = rand.nextInt((int)randsum);
+		double sum = 0;
+		for (Entry<Integer, Number> entry : map.entrySet()) {
+			sum += entry.getValue().doubleValue();
+			if (randnum < sum) {
+				return Block.get(entry.getKey());
+			}
+		}
+		return Block.get(Block.STONE);
+	}
+	
+	public Item getMineralByOre(int itemid) {
 		switch (itemid) {
 		case Item.STONE :
 			return Item.get(Item.COBBLESTONE);
@@ -57,5 +72,17 @@ public class MineManager {
 		default :
 			return Item.get(itemid);
 		}
+	}
+	
+	public boolean isDirectOre() {
+		return getConfig().getBoolean("direct-ore");
+	}
+	
+	private DataBase getDB() {
+		return plugin.getDB();
+	}
+	
+	private Config getConfig() {
+		return getDB().getConfig();
 	}
 }
