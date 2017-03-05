@@ -12,3 +12,9 @@ ore-list:
  73: 5
  56: 2
  129: 1
+
+#광산의 높이 
+mine-height: 1
+#광물이 재생성되는데 걸리는 ms
+#1ms = 0.001초
+mine-reset-milisec: 500

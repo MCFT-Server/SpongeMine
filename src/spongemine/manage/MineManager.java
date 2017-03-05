@@ -85,4 +85,12 @@ public class MineManager {
 	private Config getConfig() {
 		return getDB().getConfig();
 	}
+	
+	public int getResetTick() {
+		return getConfig().getInt("mine-reset-milisec") / 50;
+	}
+	
+	public int getMineHeight() {
+		return getConfig().getInt("mine-height");
+	}
 }

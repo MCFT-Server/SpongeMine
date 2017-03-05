@@ -27,11 +27,17 @@ public class EventListener extends BaseListener<Main> {
 		return false;
 	}
 	
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBreak(BlockBreakEvent event) {
 		Block block = event.getBlock();
 		Player player = event.getPlayer();
-		if (block.getLevel().getBlock(new Vector3(block.x, block.y - 1, block.z)).getId() != Block.SPONGE) {
+		boolean isSponge = false;
+		for (int i = MineManager.getInstance().getMineHeight(); i > 0; i--) {
+			if (block.getLevel().getBlock(new Vector3(block.x, block.y - i, block.z)).getId() == Block.SPONGE) {
+				isSponge = true;
+			}
+		}
+		if (!isSponge) {
 			return;
 		}
 		if (MineManager.getInstance().isDirectOre()) {
@@ -40,7 +46,8 @@ public class EventListener extends BaseListener<Main> {
 			player.getInventory().addItem(event.getDrops());
 		}
 		event.setDrops(new Item[0]);
-		Server.getInstance().getScheduler().scheduleDelayedTask(new BlockPlaceTask(plugin, block), 5);
+		int tick = MineManager.getInstance().getResetTick();
+		Server.getInstance().getScheduler().scheduleDelayedTask(new BlockPlaceTask(plugin, block), tick);
 	}
 	
 	@EventHandler
@@ -49,6 +56,8 @@ public class EventListener extends BaseListener<Main> {
 		if (block.getId() != Block.SPONGE) {
 			return;
 		}
-		MineManager.getInstance().placeMine(new Position(block.x, block.y + 1, block.z, block.level));
+		for (int i = 1; i <= MineManager.getInstance().getMineHeight(); i++) {
+			MineManager.getInstance().placeMine(new Position(block.x, block.y + i, block.z, block.level));
+		}
 	}
 }
